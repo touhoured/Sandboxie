@@ -22,7 +22,7 @@ jobs:
 
       - name: Patch source
         run: |
-          "C:\Program Files\Git\usr\bin\patch.exe" -p1 <.github/0001-Disable-cert-verification.patch
+          "C:\Program Files\Git\usr\bin\patch.exe" -p1 -i .github/0001-Disable-cert-verification.patch
 
       - name: Setup msbuild
         uses: microsoft/setup-msbuild@v1.3.1
