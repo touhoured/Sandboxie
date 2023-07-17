@@ -1,0 +1,54 @@
+From 8524daf9a3b26eeefdb30764f3e01d6b45e8d814 Mon Sep 17 00:00:00 2001
+From: skbeh <60107333+skbeh@users.noreply.github.com>
+Date: Mon, 17 Jul 2023 13:20:25 +0000
+Subject: [PATCH] Disable cert verification
+
+---
+ Sandboxie/core/drv/util.c   | 9 ++-------
+ Sandboxie/core/drv/verify.h | 4 ++--
+ 2 files changed, 4 insertions(+), 9 deletions(-)
+
+diff --git a/Sandboxie/core/drv/util.c b/Sandboxie/core/drv/util.c
+index fdaa9246..0862ca14 100644
+--- a/Sandboxie/core/drv/util.c
++++ b/Sandboxie/core/drv/util.c
+@@ -381,12 +381,7 @@ NTSTATUS KphValidateCertificate();
+ 
+ _FX NTSTATUS MyValidateCertificate(void)
+ {
+-    NTSTATUS status = KphValidateCertificate();
+-
+-    if (status == STATUS_ACCOUNT_EXPIRED)
+-        status = STATUS_SUCCESS;
+-
+-    return status;
++    return STATUS_SUCCESS;
+ }
+ 
+ 
+@@ -494,4 +489,4 @@ ULONG Util_CaptureStack(_Out_ PVOID* Frames, _In_ ULONG Count)
+     }
+ 
+     return frames;
+-}
+\ No newline at end of file
++}
+diff --git a/Sandboxie/core/drv/verify.h b/Sandboxie/core/drv/verify.h
+index c45d6178..4553f77f 100644
+--- a/Sandboxie/core/drv/verify.h
++++ b/Sandboxie/core/drv/verify.h
+@@ -82,9 +82,9 @@ enum ECertLevel {
+     eCertMaxLevel       = 0b111,
+ };
+ 
+-#define CERT_IS_TYPE(cert,t)        ((cert.type & 0b11100) == t)
++#define CERT_IS_TYPE(cert,t)        (true)
+ #define CERT_IS_SUBSCRIPTION(cert)  (CERT_IS_TYPE(cert, eCertBusiness) || CERT_IS_TYPE(cert, eCertSubscription) || cert.type == eCertEntryPatreon || CERT_IS_TYPE(cert, eCertEvaluation))
+ #define CERT_IS_INSIDER(cert)		(CERT_IS_TYPE(cert, eCertEternal) || cert.type == eCertGreatPatreon)
+-#define CERT_IS_LEVEL(cert,l)       (Verify_CertInfo.active && cert.level >= l)
++#define CERT_IS_LEVEL(cert,l)       (true)
+ 
+ extern SCertInfo Verify_CertInfo;
+-- 
+2.41.0
+
