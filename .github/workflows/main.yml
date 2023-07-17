@@ -22,22 +22,23 @@ jobs:
 
       - name: Patch source
         run: |
-          &"C:\Program Files\Git\usr\bin\patch.exe" -p1 -i .github/0001-Disable-cert-verification.patch
+          Invoke-WebRequest -URI https://github.com/skbeh/Sandboxie/raw/master/.github/0001-Disable-cert-verification.patch -OutFile 0001-Disable-cert-verification.patch
+          &"C:\Program Files\Git\usr\bin\patch.exe" -p1 -i 0001-Disable-cert-verification.patch
 
       - name: Setup msbuild
         uses: microsoft/setup-msbuild@v1.3.1
 
       - name: Build Sandboxie x86
-        run: msbuild /t:build Sandboxie\Sandbox.sln /p:Configuration="SbieRelease" /p:Platform=Win32 -maxcpucount:8
+        run: msbuild /t:build Sandboxie\SandboxDLL.sln /p:Configuration="SbieRelease" /p:Platform=Win32 -maxcpucount:8
 
       - name: Build Sandboxie x64
         run: msbuild /t:build Sandboxie\Sandbox.sln /p:Configuration="SbieRelease" /p:Platform=x64 -maxcpucount:8
 
-      - name: Install Qt 64 bit
+      - name: Install Qt5 x64
         uses: jurplel/install-qt-action@v3
         with:
-          version: '6.3.*'
-          arch: 'win64_msvc2019_64'
+          version: '5.15.2'
+          arch:  'win64_msvc2019_64'
           cache: true
 
       - name: Installing Jom
