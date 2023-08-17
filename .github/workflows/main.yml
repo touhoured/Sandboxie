@@ -5,9 +5,9 @@ on:
    - cron: '0 1 * * *'
   workflow_dispatch:
   push:
-    branches: [ master ]
+    branches: [ ci ]
   pull_request:
-    branches: [ master ]
+    branches: [ ci ]
 
 jobs:
   build:
@@ -22,7 +22,7 @@ jobs:
 
       - name: Patch source
         run: |
-          Invoke-WebRequest -URI https://github.com/skbeh/Sandboxie/raw/master/.github/0001-Disable-cert-verification.patch -OutFile 0001-Disable-cert-verification.patch
+          Invoke-WebRequest -URI https://github.com/skbeh/Sandboxie/raw/ci/.github/0001-Disable-cert-verification.patch -OutFile 0001-Disable-cert-verification.patch
           &"C:\Program Files\Git\usr\bin\patch.exe" -p1 -i 0001-Disable-cert-verification.patch
 
       - name: Setup msbuild

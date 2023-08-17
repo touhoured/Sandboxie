@@ -1,21 +1,24 @@
-From 8524daf9a3b26eeefdb30764f3e01d6b45e8d814 Mon Sep 17 00:00:00 2001
+From 622586e9d9c1cdad8783d3f76f5954dc07d2ea77 Mon Sep 17 00:00:00 2001
 From: skbeh <60107333+skbeh@users.noreply.github.com>
 Date: Mon, 17 Jul 2023 13:20:25 +0000
 Subject: [PATCH] Disable cert verification
 
 ---
- Sandboxie/core/drv/util.c   | 9 ++-------
- Sandboxie/core/drv/verify.h | 4 ++--
- 2 files changed, 4 insertions(+), 9 deletions(-)
+ Sandboxie/core/drv/util.c   | 12 ++----------
+ Sandboxie/core/drv/verify.h |  4 ++--
+ 2 files changed, 4 insertions(+), 12 deletions(-)
 
 diff --git a/Sandboxie/core/drv/util.c b/Sandboxie/core/drv/util.c
-index fdaa9246..0862ca14 100644
+index b10c3f44..435361bd 100644
 --- a/Sandboxie/core/drv/util.c
 +++ b/Sandboxie/core/drv/util.c
-@@ -381,12 +381,7 @@ NTSTATUS KphValidateCertificate();
+@@ -384,15 +384,7 @@ void InitFwUuid();
  
  _FX NTSTATUS MyValidateCertificate(void)
  {
+-    if(!*g_uuid_str)
+-        InitFwUuid();
+-
 -    NTSTATUS status = KphValidateCertificate();
 -
 -    if (status == STATUS_ACCOUNT_EXPIRED)
@@ -26,7 +29,7 @@ index fdaa9246..0862ca14 100644
  }
  
  
-@@ -494,4 +489,4 @@ ULONG Util_CaptureStack(_Out_ PVOID* Frames, _In_ ULONG Count)
+@@ -500,4 +492,4 @@ ULONG Util_CaptureStack(_Out_ PVOID* Frames, _In_ ULONG Count)
      }
  
      return frames;
@@ -34,10 +37,10 @@ index fdaa9246..0862ca14 100644
 \ No newline at end of file
 +}
 diff --git a/Sandboxie/core/drv/verify.h b/Sandboxie/core/drv/verify.h
-index c45d6178..4553f77f 100644
+index 4de244ea..23e22b7f 100644
 --- a/Sandboxie/core/drv/verify.h
 +++ b/Sandboxie/core/drv/verify.h
-@@ -82,9 +82,9 @@ enum ECertLevel {
+@@ -82,10 +82,10 @@ enum ECertLevel {
      eCertMaxLevel       = 0b111,
  };
  
@@ -45,9 +48,10 @@ index c45d6178..4553f77f 100644
 +#define CERT_IS_TYPE(cert,t)        (1)
  #define CERT_IS_SUBSCRIPTION(cert)  (CERT_IS_TYPE(cert, eCertBusiness) || CERT_IS_TYPE(cert, eCertSubscription) || cert.type == eCertEntryPatreon || CERT_IS_TYPE(cert, eCertEvaluation))
  #define CERT_IS_INSIDER(cert)		(CERT_IS_TYPE(cert, eCertEternal) || cert.type == eCertGreatPatreon)
--#define CERT_IS_LEVEL(cert,l)       (Verify_CertInfo.active && cert.level >= l)
+-#define CERT_IS_LEVEL(cert,l)       (cert.active && cert.level >= l)
 +#define CERT_IS_LEVEL(cert,l)       (1)
  
+ #ifdef KERNEL_MODE
  extern SCertInfo Verify_CertInfo;
 -- 
 2.41.0
