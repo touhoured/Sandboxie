@@ -194,7 +194,7 @@ void WindowsMoveFile(const QString& from, const QString& to);
 
 extern quint32 g_FeatureFlags;
 
-extern QByteArray g_Certificate;
+//extern QByteArray g_Certificate; // NOSUPPORT
 
 #include "..\..\Sandboxie\core\drv\verify.h"
 

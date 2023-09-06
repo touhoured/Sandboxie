@@ -85,7 +85,7 @@ Qt::CheckState CSettingsWindow__Int2Chk(int state)
 
 quint32 g_FeatureFlags = 0;
 
-QByteArray g_Certificate;
+// QByteArray g_Certificate; // NOSUPPORT
 SCertInfo g_CertInfo = { 0 };
 
 void COptionsWindow__AddCertIcon(QWidget* pOriginalWidget, bool bAdvanced = false);
@@ -1101,9 +1101,10 @@ void CSettingsWindow::UpdateCert()
 {
 	ui.lblCertExp->setVisible(false);
 	//ui.lblCertLevel->setVisible(!g_Certificate.isEmpty());
-	if (!g_Certificate.isEmpty()) 
+	if (true) // (!g_Certificate.isEmpty()) // NOSUPPORT
 	{
-		ui.txtCertificate->setPlainText(g_Certificate);
+		// ui.txtCertificate->setPlainText(g_Certificate); // NOSUPPORT
+		ui.txtCertificate->setPlainText("Here goes the certificate"); // NOSUPPORT
 		//ui.lblSupport->setVisible(false);
 
 		QPalette palette = QApplication::palette();
@@ -1182,7 +1183,7 @@ void CSettingsWindow::ApplyCert()
 		return;
 	
 	QByteArray Certificate = ui.txtCertificate->toPlainText().toUtf8();	
-	if (g_Certificate != Certificate) {
+	if (false) { // (g_Certificate != Certificate) { // NOSUPPORT
 
 		QPalette palette = QApplication::palette();
 
@@ -1609,6 +1610,9 @@ void CSettingsWindow::SaveSettings()
 
 bool CSettingsWindow::ApplyCertificate(const QByteArray &Certificate, QWidget* widget)
 {
+	return false; // NOSUPPORT
+	// NOSUPPORT BEGIN
+	/*
 	QString CertPath = theAPI->GetSbiePath() + "\\Certificate.dat";
 	if (!Certificate.isEmpty()) {
 
@@ -1671,6 +1675,8 @@ bool CSettingsWindow::ApplyCertificate(const QByteArray &Certificate, QWidget* w
 		g_Certificate.clear();
 		return false;
 	}
+	*/
+	// NOSUPPORT END
 }
 
 void CSettingsWindow::apply()
@@ -2272,7 +2278,7 @@ void CSettingsWindow::LoadCertificate(QString CertPath)
 		
 	QFile CertFile(CertPath);
 	if (CertFile.open(QFile::ReadOnly)) {
-		g_Certificate = CertFile.readAll();
+		//g_Certificate = CertFile.readAll(); // NOSUPPORT
 		CertFile.close();
 	}
 }
