@@ -2815,7 +2815,7 @@ Till skillnad från preview-kanalen, inkluderar den inte otestade eller experime
     <message>
         <location filename="SbiePlusAPI.cpp" line="758"/>
         <source>OPEN Root Access</source>
-        <translation>Öppen Root-Access</translation>
+        <translation type="unfinished">Öppna root-tillgång</translation>
     </message>
     <message>
         <location filename="SbiePlusAPI.cpp" line="760"/>
@@ -8431,7 +8431,7 @@ istället för &quot;*&quot;.</translation>
     <message>
         <location filename="Forms/RecoveryWindow.ui" line="68"/>
         <source>Recover target:</source>
-        <translation>Återställ mål:</translation>
+        <translation>Återställningsmål:</translation>
     </message>
     <message>
         <location filename="Forms/RecoveryWindow.ui" line="110"/>
@@ -8765,7 +8765,7 @@ istället för &quot;*&quot;.</translation>
     <message>
         <location filename="Forms/SettingsWindow.ui" line="1977"/>
         <source>Sandbox &lt;a href=&quot;sbie://docs/keyrootpath&quot;&gt;registry root&lt;/a&gt;: </source>
-        <translation>Sandlåda &lt;a href=&quot;sbie://docs/keyrootpath&quot;&gt;registrets-root&lt;/a&gt;: </translation>
+        <translation>Sandlåda &lt;a href=&quot;sbie://docs/keyrootpath&quot;&gt;registrets root&lt;/a&gt;: </translation>
     </message>
     <message>
         <location filename="Forms/SettingsWindow.ui" line="2023"/>
@@ -8785,7 +8785,7 @@ istället för &quot;*&quot;.</translation>
     <message>
         <location filename="Forms/SettingsWindow.ui" line="1957"/>
         <source>Sandbox &lt;a href=&quot;sbie://docs/filerootpath&quot;&gt;file system root&lt;/a&gt;: </source>
-        <translation>Sandlåda &lt;a href=&quot;sbie://docs/filerootpath&quot;&gt;filsystemets-root&lt;/a&gt;: </translation>
+        <translation>Sandlåda &lt;a href=&quot;sbie://docs/filerootpath&quot;&gt;filsystemets root&lt;/a&gt;: </translation>
     </message>
     <message>
         <location filename="Forms/SettingsWindow.ui" line="1970"/>
@@ -8848,7 +8848,7 @@ istället för &quot;*&quot;.</translation>
     <message>
         <location filename="Forms/SettingsWindow.ui" line="404"/>
         <source>Windows Shell</source>
-        <translation>Windows-skal</translation>
+        <translation>Windows skal</translation>
     </message>
     <message>
         <source>Icon</source>
