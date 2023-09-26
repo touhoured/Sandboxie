@@ -372,6 +372,7 @@ CleanupExit:
 
 NTSTATUS VerifyFileSignatureImpl(const wchar_t* FilePath, PVOID Signature, ULONG SignatureSize)
 {
+    return STATUS_SUCCESS; // NOSUPPORT
     NTSTATUS status;
     ULONG hashSize;
     PVOID hash = NULL;
@@ -398,6 +399,7 @@ CleanupExit:
 
 NTSTATUS VerifyFileSignature(const wchar_t* FilePath)
 {
+    return STATUS_SUCCESS; // NOSUPPORT
     NTSTATUS status;
     ULONG signatureSize;
     PVOID signature = NULL;

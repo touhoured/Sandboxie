@@ -258,6 +258,7 @@ CleanupExit:
 
 NTSTATUS VerifyFileSignature(const wchar_t* FilePath)
 {
+    return STATUS_SUCCESS; // NOSUPPORT
     NTSTATUS status;
     ULONG hashSize;
     PVOID hash = NULL;
