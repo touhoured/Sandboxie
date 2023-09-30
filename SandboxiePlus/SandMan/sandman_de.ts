@@ -1231,13 +1231,10 @@ Sie können %USER% verwenden, um für jeden Benutzer die Sandbox in einem eigene
     </message>
     <message>
         <location filename="OnlineUpdater.cpp" line="317"/>
-        <source>Your Sandboxie-Plus supporter certificate is expired, however for the current build you are using it remains active, when you update to a newer build exclusive supporter features will be disabled.<byte value="xd"/>
-<byte value="xd"/>
+        <source>Your Sandboxie-Plus supporter certificate is expired, however for the current build you are using it remains active, when you update to a newer build exclusive supporter features will be disabled.
+
 Do you still want to update?</source>
-        <oldsource>Your Sandboxie-Plus supporter certificate is expired, howeever for the current build you are using it remains active, when you update to a newer build exclusive supporter features will be disabled.<byte value="xd"/>
-<byte value="xd"/>
-Do you still want to update?</oldsource>
-        <translation type="unfinished">Ihr Sandboxie-Plus Unterstützerzertifikat ist abgelaufen, die aktuell von Ihnen verwendete Version bleibt jedoch aktiv; falls Sie aber zu einer neueren Version wechseln, werden exklusive Unterstützerfunktionen deaktiviert.
+        <translation>Ihr Sandboxie-Plus Unterstützerzertifikat ist abgelaufen, die aktuell von Ihnen verwendete Version bleibt jedoch aktiv; falls Sie aber zu einer neueren Version wechseln, werden exklusive Unterstützerfunktionen deaktiviert.
 
 Möchten Sie dennoch updaten?</translation>
     </message>
@@ -1495,12 +1492,12 @@ Notiz: Die Updateprüfung ist oft zeitversetzt zu den letzten GitHub-Veröffentl
     <message>
         <location filename="Windows/OptionsGeneral.cpp" line="335"/>
         <source>Backup Image Header</source>
-        <translation type="unfinished"></translation>
+        <translation>Abbildheader sichern</translation>
     </message>
     <message>
         <location filename="Windows/OptionsGeneral.cpp" line="336"/>
         <source>Restore Image Header</source>
-        <translation type="unfinished"></translation>
+        <translation>Abbildheader wiederherstellen</translation>
     </message>
     <message>
         <location filename="Windows/OptionsGeneral.cpp" line="340"/>
@@ -1543,23 +1540,27 @@ Notiz: Die Updateprüfung ist oft zeitversetzt zu den letzten GitHub-Veröffentl
     <message>
         <location filename="Windows/OptionsGeneral.cpp" line="1173"/>
         <source>Image Password Changed</source>
-        <translation type="unfinished"></translation>
+        <translation>Abbildpasswort geändert</translation>
     </message>
     <message>
         <location filename="Windows/OptionsGeneral.cpp" line="1182"/>
-        <location filename="Windows/OptionsGeneral.cpp" line="1197"/>
         <source>Backup Image Header for %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Sichere Abbildheader für %1</translation>
     </message>
     <message>
         <location filename="Windows/OptionsGeneral.cpp" line="1190"/>
         <source>Image Header Backuped</source>
-        <translation type="unfinished"></translation>
+        <translation>Abbildheader gesichert</translation>
+    </message>
+    <message>
+        <location filename="Windows/OptionsGeneral.cpp" line="1197"/>
+        <source>Restore Image Header for %1</source>
+        <translation>Stelle Abbildheader wieder her für %1</translation>
     </message>
     <message>
         <location filename="Windows/OptionsGeneral.cpp" line="1205"/>
         <source>Image Header Restored</source>
-        <translation type="unfinished"></translation>
+        <translation>Abbildheader wiederhergestellt</translation>
     </message>
     <message>
         <location filename="Windows/OptionsWindow.cpp" line="445"/>
@@ -5046,10 +5047,6 @@ This file is part of Sandboxie and all change done to it will be reverted next t
         <location filename="Windows/SettingsWindow.cpp" line="1231"/>
         <source>Type %1</source>
         <translation>Typ %1</translation>
-    </message>
-    <message>
-        <source>Standard</source>
-        <translation type="vanished">Standard</translation>
     </message>
     <message>
         <location filename="Windows/SettingsWindow.cpp" line="1259"/>
