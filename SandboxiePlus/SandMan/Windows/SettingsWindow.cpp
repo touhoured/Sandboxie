@@ -11,6 +11,7 @@
 #include "../OnlineUpdater.h"
 #include "../MiscHelpers/Archive/ArchiveFS.h"
 #include <QJsonDocument>
+#include "../Helpers/StorageInfo.h"
 #include "../Wizards/TemplateWizard.h"
 #include "../AddonManager.h"
 #include <qfontdialog.h>
@@ -102,8 +103,7 @@ CSettingsWindow::CSettingsWindow(QWidget* parent)
 	//flags &= ~Qt::WindowCloseButtonHint;
 	setWindowFlags(flags);
 
-	bool bAlwaysOnTop = theConf->GetBool("Options/AlwaysOnTop", false);
-	this->setWindowFlag(Qt::WindowStaysOnTopHint, bAlwaysOnTop);
+	this->setWindowFlag(Qt::WindowStaysOnTopHint, theGUI->IsAlwaysOnTop());
 
 	ui.setupUi(this);
 	this->setWindowTitle(tr("Sandboxie Plus - Global Settings"));
@@ -155,7 +155,7 @@ CSettingsWindow::CSettingsWindow(QWidget* parent)
 
 	ui.tabsControl->setCurrentIndex(0);
 	ui.tabsControl->setTabIcon(0, CSandMan::GetIcon("Alarm"));
-	//ui.tabsControl->setTabIcon(1, CSandMan::GetIcon("USB"));
+	ui.tabsControl->setTabIcon(1, CSandMan::GetIcon("USB"));
 
 	ui.tabsTemplates->setCurrentIndex(0);
 	ui.tabsTemplates->setTabIcon(0, CSandMan::GetIcon("Program"));
@@ -294,6 +294,10 @@ CSettingsWindow::CSettingsWindow(QWidget* parent)
 	connect(ui.chkMonitorSize, SIGNAL(stateChanged(int)), this, SLOT(OnOptChanged()));
 	connect(ui.chkPanic, SIGNAL(stateChanged(int)), this, SLOT(OnOptChanged()));
 	connect(ui.keyPanic, SIGNAL(keySequenceChanged(const QKeySequence &)), this, SLOT(OnOptChanged()));
+	connect(ui.chkTop, SIGNAL(stateChanged(int)), this, SLOT(OnOptChanged()));
+	connect(ui.keyTop, SIGNAL(keySequenceChanged(const QKeySequence &)), this, SLOT(OnOptChanged()));
+	connect(ui.chkPauseForce, SIGNAL(stateChanged(int)), this, SLOT(OnOptChanged()));
+	connect(ui.keyPauseForce, SIGNAL(keySequenceChanged(const QKeySequence &)), this, SLOT(OnOptChanged()));
 	connect(ui.chkAsyncBoxOps, SIGNAL(stateChanged(int)), this, SLOT(OnOptChanged()));
 
 	connect(ui.chkSilentMode, SIGNAL(stateChanged(int)), this, SLOT(OnOptChanged()));
@@ -437,6 +441,13 @@ CSettingsWindow::CSettingsWindow(QWidget* parent)
 	connect(ui.btnBrowse, SIGNAL(clicked(bool)), this, SLOT(OnBrowse()));
 	m_WarnProgsChanged = false;
 	//
+
+	// USB
+	connect(ui.chkSandboxUsb, SIGNAL(stateChanged(int)), this, SLOT(OnVolumeChanged()));
+	connect(ui.cmbUsbSandbox, SIGNAL(currentIndexChanged(int)), this, SLOT(OnVolumeChanged()));
+	connect(ui.treeVolumes, SIGNAL(itemChanged(QTreeWidgetItem *, int)), this, SLOT(OnVolumeChanged()));
+	m_VolumeChanged = false;
+	// 
 
 	// Templates
 	connect(ui.btnAddCompat, SIGNAL(clicked(bool)), this, SLOT(OnAddCompat()));
@@ -901,6 +912,12 @@ void CSettingsWindow::LoadSettings()
 	ui.chkPanic->setChecked(theConf->GetBool("Options/EnablePanicKey", false));
 	ui.keyPanic->setKeySequence(QKeySequence(theConf->GetString("Options/PanicKeySequence", "Shift+Pause")));
 
+	ui.chkTop->setChecked(theConf->GetBool("Options/EnableTopMostKey", false));
+	ui.keyTop->setKeySequence(QKeySequence(theConf->GetString("Options/TopMostKeySequence", "Alt+Pause")));
+
+	ui.chkPauseForce->setChecked(theConf->GetBool("Options/EnablePauseForceKey", false));
+	ui.keyPauseForce->setKeySequence(QKeySequence(theConf->GetString("Options/PauseForceKeySequence", "Ctrl+Alt+F")));
+
 	ui.chkMonitorSize->setChecked(theConf->GetBool("Options/WatchBoxSize", false));
 
 	ui.chkWatchConfig->setChecked(theConf->GetBool("Options/WatchIni", true));
@@ -994,6 +1011,17 @@ void CSettingsWindow::LoadSettings()
 			AddWarnEntry(Value, 2);
 
 		m_WarnProgsChanged = false;
+
+		ui.chkSandboxUsb->setChecked(theAPI->GetGlobalSettings()->GetBool("ForceUsbDrives", false));
+
+		ui.cmbUsbSandbox->clear();
+		foreach(const CSandBoxPtr & pBox, theAPI->GetAllBoxes())
+			ui.cmbUsbSandbox->addItem(pBox->GetName().replace("_", " "));
+		ui.cmbUsbSandbox->setCurrentText(theAPI->GetGlobalSettings()->GetText("UsbSandbox", "USB_Box").replace("_", " "));
+
+		UpdateDrives();
+
+		m_VolumeChanged = false;
 	}
 	
 	if(!theAPI->IsConnected() || (theAPI->GetGlobalSettings()->GetBool("EditAdminOnly", false) && !IsAdminUser()))
@@ -1019,6 +1047,9 @@ void CSettingsWindow::LoadSettings()
 		ui.treeWarnProgs->setEnabled(false);
 		ui.btnAddWarnProg->setEnabled(false);
 		ui.btnDelWarnProg->setEnabled(false);
+		ui.chkSandboxUsb->setEnabled(false);
+		ui.cmbUsbSandbox->setEnabled(false);
+		ui.treeVolumes->setEnabled(false);
 		ui.treeCompat->setEnabled(false);
 		ui.btnAddCompat->setEnabled(false);
 		ui.btnDelCompat->setEnabled(false);
@@ -1097,6 +1128,78 @@ void CSettingsWindow::OnRamDiskChange()
 	OnGeneralChanged();
 }
 
+void CSettingsWindow::OnVolumeChanged() 
+{ 
+	ui.cmbUsbSandbox->setEnabled(ui.chkSandboxUsb->isChecked());
+	ui.treeVolumes->setEnabled(ui.chkSandboxUsb->isChecked());
+
+	m_VolumeChanged = true; 
+	OnOptChanged();
+}
+
+void CSettingsWindow::UpdateDrives()
+{
+	if (!theAPI->IsConnected())
+		return;
+
+	ui.treeVolumes->clear();
+
+	QStringList DisabledForceVolume = theAPI->GetGlobalSettings()->GetTextList("DisabledForceVolume", false);
+
+	auto volumes = ListAllVolumes();
+	auto drives = ListAllDrives();
+	for (auto I = volumes.begin(); I != volumes.end(); ++I) {
+
+		QStringList Devices;
+		bool bOnUSB = false;
+		for (auto J = I->disks.begin(); J != I->disks.end(); ++J) {
+			SDriveInfo& info = drives[J->deviceName];
+			if (info.Enum == L"USBSTOR")
+				bOnUSB = true;
+			Devices.append(QString::fromStdWString(info.Name));
+		}
+
+		if (bOnUSB) {
+			QTreeWidgetItem* pItem = new QTreeWidgetItem();
+			ui.treeVolumes->addTopLevelItem(pItem);
+
+			QString Info = Devices.join("|");
+
+			QStringList Mounts;
+			for (auto J = I->mountPoints.begin(); J != I->mountPoints.end(); ++J)
+				Mounts.append(QString::fromStdWString(*J));
+			Info += " (" + Mounts.join(", ") + ")";
+
+			std::wstring label;
+			quint32 sn = CSbieAPI::GetVolumeSN(I->deviceName.c_str(), &label);
+			QString SN = QString("%1-%2").arg((ushort)HIWORD(sn), 4, 16, QChar('0')).arg((ushort)LOWORD(sn), 4, 16, QChar('0')).toUpper();
+
+			if (!label.empty())
+				Info += " [" + QString::fromStdWString(label) + "]";
+
+			pItem->setText(0, SN);
+			if(DisabledForceVolume.removeAll(SN))
+				pItem->setCheckState(0, Qt::Unchecked);
+			else
+				pItem->setCheckState(0, Qt::Checked);
+			pItem->setText(1, Info);
+		}
+	}
+
+	foreach(const QString & SN, DisabledForceVolume) {
+
+		QTreeWidgetItem* pItem = new QTreeWidgetItem();
+		ui.treeVolumes->addTopLevelItem(pItem);
+
+		pItem->setText(0, SN);
+		pItem->setCheckState(0, Qt::Unchecked);
+		pItem->setText(1, tr("Volume not attached"));
+	}
+}
+
+//void ScanForSeats();
+//int CountSeats();
+
 void CSettingsWindow::UpdateCert()
 {
 	ui.lblCertExp->setVisible(false);
@@ -1167,7 +1270,7 @@ void CSettingsWindow::OnGetCert()
 	SB_PROGRESS Status = theGUI->m_pUpdater->GetSupportCert(ui.txtSerial->text(), this, SLOT(OnCertData(const QByteArray&, const QVariantMap&)));
 	if (Status.GetStatus() == OP_ASYNC) {
 		theGUI->AddAsyncOp(Status.GetValue());
-		Status.GetValue()->ShowMessage(tr("Retreiving certificate..."));
+		Status.GetValue()->ShowMessage(tr("Retrieving certificate..."));
 	}
 }
 
@@ -1409,6 +1512,12 @@ void CSettingsWindow::SaveSettings()
 
 	theConf->SetValue("Options/EnablePanicKey", ui.chkPanic->isChecked());
 	theConf->SetValue("Options/PanicKeySequence", ui.keyPanic->keySequence().toString());
+
+	theConf->SetValue("Options/EnableTopMostKey", ui.chkTop->isChecked());
+	theConf->SetValue("Options/TopMostKeySequence", ui.keyTop->keySequence().toString());
+
+	theConf->SetValue("Options/EnablePauseForceKey", ui.chkPauseForce->isChecked());
+	theConf->SetValue("Options/PauseForceKeySequence", ui.keyPauseForce->keySequence().toString());
 	
 	theConf->SetValue("Options/WatchBoxSize", ui.chkMonitorSize->isChecked());
 
@@ -1536,6 +1645,32 @@ void CSettingsWindow::SaveSettings()
 
 				WriteTextList("AlertProcess", AlertProcess);
 				WriteTextList("AlertFolder", AlertFolder);
+			}
+
+			if (m_VolumeChanged)
+			{
+				m_VolumeChanged = false;
+
+				WriteAdvancedCheck(ui.chkSandboxUsb, "ForceUsbDrives", "y", "");
+
+				QString UsbSandbox = ui.cmbUsbSandbox->currentText().replace(" ", "_");
+				SB_STATUS Status = theAPI->ValidateName(UsbSandbox);
+				if (Status.IsError())
+					QMessageBox::warning(this, "Sandboxie-Plus", theGUI->FormatError(Status));
+				else
+					WriteText("UsbSandbox", UsbSandbox);
+
+				QStringList DisabledForceVolume;
+				for (int i = 0; i < ui.treeVolumes->topLevelItemCount(); i++) {
+					QTreeWidgetItem* pItem = ui.treeVolumes->topLevelItem(i);
+					if (pItem->checkState(0) == Qt::Unchecked) {
+						DisabledForceVolume.append(pItem->text(0));
+					}
+				}
+
+				WriteTextList("DisabledForceVolume", DisabledForceVolume);
+
+				theGUI->UpdateForceUSB();
 			}
 
 			if (m_CompatChanged)

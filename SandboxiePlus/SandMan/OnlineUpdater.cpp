@@ -76,6 +76,17 @@ void COnlineUpdater::OnRequestFinished()
 	pReply->deleteLater();
 }
 
+quint64 COnlineUpdater::GetRandID()
+{
+	quint64 RandID = 0;
+	theAPI->GetSecureParam("RandID", &RandID, sizeof(RandID));
+	if (!RandID) {
+		RandID = QRandomGenerator64::global()->generate();
+		theAPI->SetSecureParam("RandID", &RandID, sizeof(RandID));
+	}
+	return RandID;
+}
+
 SB_PROGRESS COnlineUpdater::GetUpdates(QObject* receiver, const char* member, const QVariantMap& Params)
 {
 	QUrlQuery Query;
@@ -102,13 +113,7 @@ SB_PROGRESS COnlineUpdater::GetUpdates(QObject* receiver, const char* member, co
 	if (!UpdateKey.isEmpty())
 		UpdateKey += "-";
 
-	quint64 RandID = 0;
-	theAPI->GetSecureParam("RandID", &RandID, sizeof(RandID));
-	if (!RandID) {
-		RandID = QRandomGenerator64::global()->generate();
-		theAPI->SetSecureParam("RandID", &RandID, sizeof(RandID));
-	}
-
+	quint64 RandID = COnlineUpdater::GetRandID();
 	quint32 Hash = theAPI->GetUserSettings()->GetName().mid(13).toInt(NULL, 16);
 	quint64 HashID = RandID ^ (quint64((Hash & 0xFFFF) ^ ((Hash >> 16) & 0xFFFF)) << 48); // fold the hash in half and xor it with the first 16 bit of RandID
 
@@ -289,8 +294,8 @@ void COnlineUpdater::LoadState()
 
 QString COnlineUpdater::GetOnNewUpdateOption() const
 {
-	if (!g_CertInfo.active || g_CertInfo.expired);
-		return "ignore"; // this service requries a valid vcertificate
+	if (!g_CertInfo.active || g_CertInfo.expired)
+		return "ignore"; // this service requires a valid certificate
 	return theConf->GetString("Options/OnNewUpdate", "ignore");
 }
 
@@ -305,9 +310,9 @@ QString COnlineUpdater::GetOnNewReleaseOption() const
 bool COnlineUpdater::ShowCertWarningIfNeeded()
 {
 	//
-	// This function checks if this instalation uses a expired personal
+	// This function checks if this installation uses a expired personal
 	// certificate which is active for the current build
-	// in which case it it shows a warning that updating to the latest build 
+	// in which case it shows a warning that updating to the latest build 
 	// will deactivate the certificate
 	//
 

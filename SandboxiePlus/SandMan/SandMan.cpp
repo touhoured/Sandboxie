@@ -34,6 +34,7 @@
 #include <QVariantAnimation>
 #include <QSessionManager>
 #include "Helpers/FullScreen.h"
+#include "Helpers/StorageInfo.h"
 #include "Helpers/WinHelper.h"
 #include "../QSbieAPI/Helpers/DbgHelper.h"
 #include "Windows/BoxImageWindow.h"
@@ -78,8 +79,8 @@ public:
 					/*DEV_BROADCAST_HDR* deviceBroadcast = (DEV_BROADCAST_HDR*)msg->lParam;
 					if (deviceBroadcast->dbch_devicetype == DBT_DEVTYP_VOLUME) {
 					}*/
-					if (theAPI)
-						theAPI->UpdateDriveLetters();
+					if (theGUI)
+						theGUI->UpdateDrives();
 				}
 				/*else if ((msg->wParam & 0xFF80) == 0xAA00 && msg->lParam == 'xobs') 
 				{
@@ -171,6 +172,7 @@ CSandMan::CSandMan(QWidget *parent)
 		QMessageBox::critical(this, "Sandboxie-Plus", tr("WARNING: Sandboxie-Plus.ini in %1 cannot be written to, settings will not be saved.").arg(theConf->GetConfigDir()));
 	}
 
+	m_bOnTop = false;
 	m_bExit = false;
 
 	m_ImDiskReady = true;
@@ -182,6 +184,7 @@ CSandMan::CSandMan(QWidget *parent)
 	connect(theAPI, SIGNAL(BoxClosed(const CSandBoxPtr&)), this, SLOT(OnBoxClosed(const CSandBoxPtr&)));
 	connect(theAPI, SIGNAL(BoxCleaned(CSandBoxPlus*)), this, SLOT(OnBoxCleaned(CSandBoxPlus*)));
 
+	UpdateDrives();
 
 #ifdef INSIDER_BUILD
 	QString appTitle = tr("Sandboxie-Plus Insider [%1]").arg(QString(__DATE__));
@@ -1356,6 +1359,12 @@ void CSandMan::changeEvent(QEvent* e)
 	{
         if (isMinimized()) 
 		{
+			if (m_bOnTop) {
+				m_bOnTop = false;
+				this->setWindowFlag(Qt::WindowStaysOnTopHint, m_bOnTop);
+				SafeShow(this);
+			}
+
             if (m_pTrayIcon->isVisible() && theConf->GetBool("Options/MinimizeToTray", false))
 			{
 				StoreState();
@@ -1843,6 +1852,99 @@ void CSandMan::timerEvent(QTimerEvent* pEvent)
 	}
 }
 
+void CSandMan::UpdateDrives() 
+{
+	static bool UpdatePending = false;
+	if (!UpdatePending) {
+		UpdatePending = true;
+		QTimer::singleShot(10, this, []() {
+			UpdatePending = false;
+			//qDebug() << "update drives";
+
+			theAPI->UpdateDriveLetters();
+			theGUI->UpdateForceUSB();
+			emit theGUI->DrivesChanged();
+
+			/*auto volumes = ListAllVolumes();
+			auto drives = ListAllDrives();
+			qDebug() << "USB drives";
+			qDebug() << "==============";
+			for (auto I = volumes.begin(); I != volumes.end(); ++I) {
+				for (auto J = I->mountPoints.begin(); J != I->mountPoints.end(); ++J) {
+				
+					QString Device;
+					bool bOnUSB = false;
+					for (auto J = I->disks.begin(); J != I->disks.end(); ++J) {
+						SDriveInfo& info = drives[J->deviceName];
+						if (info.Enum == L"USBSTOR")
+							bOnUSB = true;
+						if (!Device.isEmpty())
+							Device += "+";
+						Device += QString::fromStdWString(info.Name);
+					}
+
+					if (bOnUSB) {
+						std::wstring label;
+						quint32 sn = CSbieAPI::GetVolumeSN(I->deviceName.c_str(), &label);
+						qDebug() << QString::fromStdWString(*J) << Device << QString("%1-%2").arg((ushort)HIWORD(sn), 4, 16, QChar('0')).arg((ushort)LOWORD(sn), 4, 16, QChar('0')).toUpper() << QString::fromStdWString(label);
+					}
+				}
+			}*/
+		});
+	}
+}
+
+void CSandMan::UpdateForceUSB()
+{
+	if (!theAPI->GetGlobalSettings()->GetBool("ForceUsbDrives", false))
+		return;
+
+	QString UsbSandbox = theAPI->GetGlobalSettings()->GetText("UsbSandbox", "USB_Box");
+
+	CSandBoxPtr pBox = theAPI->GetBoxByName(UsbSandbox);
+	if (pBox.isNull()) {
+		OnLogMessage(tr("USB sandbox not found; creating: %1").arg(UsbSandbox));
+		SB_PROGRESS Status = theAPI->CreateBox(UsbSandbox);
+		if (!Status.IsError())
+			pBox = theAPI->GetBoxByName(UsbSandbox);
+		if (pBox.isNull())
+			return;
+
+		pBox->SetBool("UseFileDeleteV2", true);
+		pBox->SetBool("UseRegDeleteV2", true);
+
+		//pBox->SetBool("SeparateUserFolders", false);
+
+		pBox->SetBool("UseVolumeSerialNumbers", true);
+	}
+
+	QStringList ForceMounts;
+	QStringList DisabledForceVolume = theAPI->GetGlobalSettings()->GetTextList("DisabledForceVolume", false);
+	auto volumes = ListAllVolumes();
+	auto drives = ListAllDrives();
+	for (auto I = volumes.begin(); I != volumes.end(); ++I) {
+
+		bool bOnUSB = false;
+		for (auto J = I->disks.begin(); J != I->disks.end(); ++J) {
+			SDriveInfo& info = drives[J->deviceName];
+			if (info.Enum == L"USBSTOR")
+				bOnUSB = true;
+		}
+
+		if (bOnUSB) {
+			quint32 sn = CSbieAPI::GetVolumeSN(I->deviceName.c_str());
+			QString SN = QString("%1-%2").arg((ushort)HIWORD(sn), 4, 16, QChar('0')).arg((ushort)LOWORD(sn), 4, 16, QChar('0')).toUpper();
+			if (!DisabledForceVolume.contains(SN)) {
+
+				for (auto J = I->mountPoints.begin(); J != I->mountPoints.end(); ++J)
+					ForceMounts.append(QString::fromStdWString(*J));
+			}
+		}
+	}
+
+	pBox->UpdateTextList("ForceFolder", ForceMounts, false);
+}
+
 void CSandMan::OnBoxSelected()
 {
 	CSandBoxPtr pBox;
@@ -2284,6 +2386,8 @@ void CSandMan::OnStatusChanged()
 				theAPI->CreateBox(DefaultBox);
 			}
 
+			UpdateForceUSB();
+
 			if (theConf->GetBool("Options/CleanUpOnStart", false)) {
 
 				//
@@ -2454,7 +2558,9 @@ void CSandMan::CheckSupport()
 	}
 }
 
-#define HK_PANIC 1
+#define HK_PANIC	1
+#define HK_TOP		2
+#define HK_FORCE	3
 
 void CSandMan::SetupHotKeys()
 {
@@ -2462,14 +2568,48 @@ void CSandMan::SetupHotKeys()
 
 	if (theConf->GetBool("Options/EnablePanicKey", false))
 		m_pHotkeyManager->registerHotkey(theConf->GetString("Options/PanicKeySequence", "Shift+Pause"), HK_PANIC);
+
+	if (theConf->GetBool("Options/EnableTopMostKey", false))
+		m_pHotkeyManager->registerHotkey(theConf->GetString("Options/TopMostSequence", "Alt+Pause"), HK_TOP);
+
+	if (theConf->GetBool("Options/EnablePauseForceKey", false))
+		m_pHotkeyManager->registerHotkey(theConf->GetString("Options/PauseForceKeySequence", "Ctrl+Alt+F"), HK_FORCE);
 }
 
 void CSandMan::OnHotKey(size_t id)
 {
 	switch (id)
 	{
-	case HK_PANIC: 
-		theAPI->TerminateAll();
+	case HK_PANIC:
+	{
+		// terminate with no exceptions when clicked 3 times
+		static quint64 LastClickTick = 0;
+		static int LastClickCount = 0;
+		if (GetCurTick() - LastClickTick > 1000)
+			LastClickCount = 0;
+		LastClickCount++;
+		if(LastClickCount != 2) // skip second click as it may take more than a second
+			theAPI->TerminateAll(LastClickCount >= 3);
+		LastClickTick = GetCurTick();
+		break;
+	}
+
+	case HK_TOP:
+		if (this->isActiveWindow() && m_bOnTop)
+			m_bOnTop = false;
+		else {
+			m_bOnTop = true;
+			QTimer::singleShot(100, [this]() {
+				this->setWindowState((this->windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
+				SetForegroundWindow(MainWndHandle);
+			});
+		}
+		this->setWindowFlag(Qt::WindowStaysOnTopHint, m_bOnTop);
+		SafeShow(this);
+		break;
+
+	case HK_FORCE:
+		theAPI->DisableForceProcess(!theAPI->AreForceProcessDisabled());
 		break;
 	}
 }
@@ -2721,7 +2861,24 @@ SB_STATUS CSandMan::ReloadCert(QWidget* pWidget)
 {
 	SB_STATUS Status = theAPI->ReloadCert();
 
-	if (Status.IsError() && Status.GetStatus() != 0xC0000225 /*STATUS_NOT_FOUND*/) 
+	if (!Status.IsError())
+	{
+		BYTE CertBlocked = 0;
+		theAPI->GetSecureParam("CertBlocked", &CertBlocked, sizeof(CertBlocked));
+		if (CertBlocked) {
+			CertBlocked = 0;
+			theAPI->SetSecureParam("CertBlocked", &CertBlocked, sizeof(CertBlocked));
+		}
+	}
+	else if (Status.GetStatus() == 0xC0000804L /*STATUS_CONTENT_BLOCKED*/)
+	{
+		QMessageBox::critical(pWidget ? pWidget : this, "Sandboxie-Plus", 
+			tr("The certificate you are attempting to use has been blocked, meaning it has been invalidated for cause. Any attempt to use it constitutes a breach of its terms of use!"));
+
+		BYTE CertBlocked = 1;
+		theAPI->SetSecureParam("CertBlocked", &CertBlocked, sizeof(CertBlocked));
+	}
+	else if (Status.GetStatus() != 0xC0000225L /*STATUS_NOT_FOUND*/) 
 	{
 		QString Info;
 		switch (Status.GetStatus())
@@ -3042,7 +3199,7 @@ SB_RESULT(void*) CSandMan::StopSbie(bool andRemove)
 	SB_RESULT(void*) Status;
 
 	if (theAPI->IsConnected()) {
-		Status = theAPI->TerminateAll();
+		Status = theAPI->TerminateAll(true);
 		theAPI->Disconnect();
 	}
 	if (!Status.IsError()) {
@@ -3171,6 +3328,8 @@ void CSandMan::OnViewMode(QAction* pAction)
 
 void CSandMan::OnAlwaysTop()
 {
+	m_bOnTop = false;
+
 	StoreState();
 	bool bAlwaysOnTop = m_pWndTopMost->isChecked();
 	theConf->SetValue("Options/AlwaysOnTop", bAlwaysOnTop);
@@ -3180,6 +3339,11 @@ void CSandMan::OnAlwaysTop()
 
 	m_pPopUpWindow->setWindowFlag(Qt::WindowStaysOnTopHint, bAlwaysOnTop);
 	m_pProgressDialog->setWindowFlag(Qt::WindowStaysOnTopHint, bAlwaysOnTop);
+}
+
+bool CSandMan::IsAlwaysOnTop() const
+{
+	return m_bOnTop || theConf->GetBool("Options/AlwaysOnTop", false);
 }
 
 void CSandMan::OnRefresh()
@@ -3360,6 +3524,7 @@ void CSandMan::OnResetMsgs()
 
 		theConf->DelValue("Options/AutoCleanupTemplates");
 		theConf->DelValue("Options/WarnTerminateAll");
+		theConf->DelValue("Options/WarnLockAll");
 		theConf->DelValue("Options/WarnTerminate");
 
 		theConf->DelValue("Options/InfoMkLink");

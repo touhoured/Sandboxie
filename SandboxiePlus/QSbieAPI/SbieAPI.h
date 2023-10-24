@@ -57,6 +57,7 @@ public:
 
 	virtual void			UpdateDriveLetters();
 	virtual QString			Nt2DosPath(QString NtPath, bool* pOk = NULL) const;
+	static quint32			GetVolumeSN(const wchar_t* path, std::wstring* pLabel = NULL);
 
 	virtual SB_STATUS		ReloadBoxes(bool bForceUpdate = false);
 	static  SB_STATUS		ValidateName(const QString& BoxName);
@@ -72,7 +73,7 @@ public:
 	virtual CSandBoxPtr		GetBoxByName(const QString &BoxName) const { return m_SandBoxes.value(BoxName.toLower()); }
 	virtual CBoxedProcessPtr GetProcessById(quint32 ProcessId) const;
 
-	virtual SB_STATUS		TerminateAll();
+	virtual SB_STATUS		TerminateAll(bool bNoExceptions = false);
 
 	virtual SB_STATUS		SetProcessExemption(quint32 process_id, quint32 action_id, bool NewState);
 	virtual bool			GetProcessExemption(quint32 process_id, quint32 action_id);
@@ -155,7 +156,7 @@ public:
 	virtual quint32			GetSessionID() const;
 
 	virtual SB_STATUS		SetSecureParam(const QString& Name, const void* data, size_t size);
-	virtual SB_STATUS		GetSecureParam(const QString& Name, void* data, size_t size);
+	virtual SB_STATUS		GetSecureParam(const QString& Name, void* data, size_t size, quint32* size_out = NULL, bool bVerify = false);
 
 
 	enum ESbieQueuedRequests
