@@ -556,6 +556,7 @@ CSettingsWindow::CSettingsWindow(QWidget* parent)
 		//COptionsWindow__AddCertIcon(ui.chkUpdateTemplates);
 		COptionsWindow__AddCertIcon(ui.chkUpdateIssues);
 		COptionsWindow__AddCertIcon(ui.chkRamDisk);
+		COptionsWindow__AddCertIcon(ui.chkSandboxUsb);
 	}
 
 	this->installEventFilter(this); // prevent enter from closing the dialog
@@ -1019,6 +1020,9 @@ void CSettingsWindow::LoadSettings()
 			ui.cmbUsbSandbox->addItem(pBox->GetName().replace("_", " "));
 		ui.cmbUsbSandbox->setCurrentText(theAPI->GetGlobalSettings()->GetText("UsbSandbox", "USB_Box").replace("_", " "));
 
+		ui.cmbUsbSandbox->setEnabled(ui.chkSandboxUsb->isChecked() && g_CertInfo.active);
+		ui.treeVolumes->setEnabled(ui.chkSandboxUsb->isChecked() && g_CertInfo.active);
+
 		UpdateDrives();
 
 		m_VolumeChanged = false;
@@ -1109,7 +1113,7 @@ void CSettingsWindow::OnRamDiskChange()
 {
 	if (sender() == ui.chkRamDisk) {
 		if (ui.chkRamDisk->isChecked())
-			theGUI->CheckCertificate(this);
+			theGUI->CheckCertificate(this, 2);
 	}
 
 	if (ui.chkRamDisk->isChecked() && ui.txtRamLimit->text().isEmpty())
@@ -1130,8 +1134,16 @@ void CSettingsWindow::OnRamDiskChange()
 
 void CSettingsWindow::OnVolumeChanged() 
 { 
-	ui.cmbUsbSandbox->setEnabled(ui.chkSandboxUsb->isChecked());
-	ui.treeVolumes->setEnabled(ui.chkSandboxUsb->isChecked());
+	if (sender() == ui.chkSandboxUsb) {
+		if (ui.chkSandboxUsb->isChecked())
+			theGUI->CheckCertificate(this, 2);
+	}
+
+	ui.cmbUsbSandbox->setEnabled(ui.chkSandboxUsb->isChecked() && g_CertInfo.active);
+	ui.treeVolumes->setEnabled(ui.chkSandboxUsb->isChecked() && g_CertInfo.active);
+
+	if (!g_CertInfo.active)
+		return;
 
 	m_VolumeChanged = true; 
 	OnOptChanged();

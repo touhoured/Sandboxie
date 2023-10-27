@@ -6,6 +6,20 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+
+
+## [1.12.1 / 5.67.1] - 2023-10-
+
+### Changed
+- improved open url dialog box [#3401](https://github.com/sandboxie-plus/Sandboxie/issues/3401)
+- improved suspended process detection
+
+### Fixed
+- fixed issue with key to bring sandman in fron as top most
+- fixed issue with ThreadSuspendCount failing for already terminated threads [#3375](https://github.com/sandboxie-plus/Sandboxie/issues/3375)
+
+
+
 ## [1.12.0 / 5.67.0] - 2023-10-25
 
 ### Added
@@ -667,6 +681,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 - added user mode system call tracing, now syscalls can be logged in compartment boxes as well as all Win32k syscalls
+- added nt object view to trace log
 
 ### Changed
 - reworked trace log model, now it can load more than a million entries in less than one second

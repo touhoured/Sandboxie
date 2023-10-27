@@ -284,13 +284,14 @@ void CBoxedProcess::InitProcessInfoImpl(void* ProcessHandle)
 	TestSuspended();
 }
 
-bool CBoxedProcess::InitProcessInfoEx()
+void CBoxedProcess::UpdateProcessInfo()
 {
 	if (m_ProcessFlags == 0 && m_pBox)
 		m_ProcessFlags = m_pBox->Api()->QueryProcessInfo(m_ProcessId);
 	m_ImageType = m_pBox->Api()->QueryProcessInfo(m_ProcessId, 'gpit');
 
-	return true;
+	if (m_bSuspended)
+		TestSuspended();
 }
 
 extern "C"
@@ -367,6 +368,10 @@ bool CBoxedProcess::TestSuspended()
 		if (!NT_SUCCESS(status))
 			break;
 		hThread = nNextThread;
+
+		ULONG IsTerminated = 0;
+		if (NT_SUCCESS(NtQueryInformationThread(hThread, ThreadIsTerminated, &IsTerminated, sizeof(ULONG), NULL)) && IsTerminated)
+			continue;
 
 		ULONG SuspendCount = 0;
 		status = NtQueryInformationThread(hThread, (THREADINFOCLASS)35/*ThreadSuspendCount*/, &SuspendCount, sizeof(ULONG), NULL);

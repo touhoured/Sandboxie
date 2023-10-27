@@ -1896,7 +1896,7 @@ void CSandMan::UpdateDrives()
 
 void CSandMan::UpdateForceUSB()
 {
-	if (!theAPI->GetGlobalSettings()->GetBool("ForceUsbDrives", false))
+	if (!theAPI->GetGlobalSettings()->GetBool("ForceUsbDrives", false) || !g_CertInfo.active)
 		return;
 
 	QString UsbSandbox = theAPI->GetGlobalSettings()->GetText("UsbSandbox", "USB_Box");
@@ -2570,7 +2570,7 @@ void CSandMan::SetupHotKeys()
 		m_pHotkeyManager->registerHotkey(theConf->GetString("Options/PanicKeySequence", "Shift+Pause"), HK_PANIC);
 
 	if (theConf->GetBool("Options/EnableTopMostKey", false))
-		m_pHotkeyManager->registerHotkey(theConf->GetString("Options/TopMostSequence", "Alt+Pause"), HK_TOP);
+		m_pHotkeyManager->registerHotkey(theConf->GetString("Options/TopMostKeySequence", "Alt+Pause"), HK_TOP);
 
 	if (theConf->GetBool("Options/EnablePauseForceKey", false))
 		m_pHotkeyManager->registerHotkey(theConf->GetString("Options/PauseForceKeySequence", "Ctrl+Alt+F"), HK_FORCE);
@@ -2819,10 +2819,10 @@ void CSandMan::SaveMessageLog(QIODevice* pFile)
 		pFile->write((Msg.TimeStamp.toString("hh:mm:ss.zzz")  + "\t" + FormatSbieMessage(Msg.MsgCode, Msg.MsgData, Msg.ProcessName)).toLatin1() + "\n");
 }
 
-bool CSandMan::CheckCertificate(QWidget* pWidget, bool bAdvanced) 
+bool CSandMan::CheckCertificate(QWidget* pWidget, int iType) 
 {
 	QString Message;
-	if (bAdvanced)
+	if (iType == 1)
 	{
 		if (CERT_IS_LEVEL(g_CertInfo, eCertAdvanced))
 			return true;
@@ -2838,8 +2838,12 @@ bool CSandMan::CheckCertificate(QWidget* pWidget, bool bAdvanced)
 		if (g_CertInfo.active)
 			return true;
 
-		Message = tr("The selected feature set is only available to project supporters. Processes started in a box with this feature set enabled without a supporter certificate will be terminated after 5 minutes.<br />"
-			"<a href=\"https://sandboxie-plus.com/go.php?to=sbie-get-cert\">Become a project supporter</a>, and receive a <a href=\"https://sandboxie-plus.com/go.php?to=sbie-cert\">supporter certificate</a>");
+		if(iType == 2)
+			Message = tr("The selected feature set is only available to project supporters.<br />"
+				"<a href=\"https://sandboxie-plus.com/go.php?to=sbie-get-cert\">Become a project supporter</a>, and receive a <a href=\"https://sandboxie-plus.com/go.php?to=sbie-cert\">supporter certificate</a>");
+		else
+			Message = tr("The selected feature set is only available to project supporters. Processes started in a box with this feature set enabled without a supporter certificate will be terminated after 5 minutes.<br />"
+				"<a href=\"https://sandboxie-plus.com/go.php?to=sbie-get-cert\">Become a project supporter</a>, and receive a <a href=\"https://sandboxie-plus.com/go.php?to=sbie-cert\">supporter certificate</a>");
 	}
 
 	QMessageBox msgBox(pWidget);
@@ -3922,9 +3926,24 @@ void CSandMan::OpenUrl(const QUrl& url)
 	if (iSandboxed == 2)
 	{
 		bool bCheck = false;
-		QString Message = tr("Do you want to open %1 in a sandboxed (yes) or unsandboxed (no) Web browser?").arg(url.toString());
-		QDialogButtonBox::StandardButton Ret = CCheckableMessageBox::question(this, "Sandboxie-Plus", Message , tr("Remember choice for later."), 
-			&bCheck, QDialogButtonBox::Yes | QDialogButtonBox::No | QDialogButtonBox::Cancel, QDialogButtonBox::Yes, QMessageBox::Question);
+		//QString Message = tr("Do you want to open %1 in a sandboxed (yes) or unsandboxed (no) Web browser?").arg(url.toString());
+		//QDialogButtonBox::StandardButton Ret = CCheckableMessageBox::question(this, "Sandboxie-Plus", Message , tr("Remember choice for later."), 
+		//	&bCheck, QDialogButtonBox::Yes | QDialogButtonBox::No | QDialogButtonBox::Cancel, QDialogButtonBox::Yes, QMessageBox::Question);
+
+		CCheckableMessageBox mb(this);
+		mb.setWindowTitle("Sandboxie-Plus");
+		mb.setIconPixmap(QMessageBox::standardIcon(QMessageBox::Question));
+		mb.setText(tr("Do you want to open %1 in a sandboxed or unsandboxed Web browser?").arg(url.toString()));
+		mb.setCheckBoxText(tr("Remember choice for later."));
+		mb.setChecked(bCheck);
+		mb.setStandardButtons(QDialogButtonBox::Yes | QDialogButtonBox::No | QDialogButtonBox::Cancel);
+		mb.button(QDialogButtonBox::Yes)->setText(tr("Sandboxed"));
+		mb.button(QDialogButtonBox::No)->setText(tr("Unsandboxed"));
+		mb.setDefaultButton(QDialogButtonBox::Yes);
+		mb.exec();
+		bCheck = mb.isChecked();
+		QDialogButtonBox::StandardButton Ret = mb.clickedStandardButton();
+
 		if (Ret == QDialogButtonBox::Cancel) return;
 		iSandboxed = Ret == QDialogButtonBox::Yes ? 1 : 0;
 		if(bCheck) theConf->SetValue("Options/OpenUrlsSandboxed", iSandboxed);
