@@ -1,4 +1,4 @@
-{
+﻿{
 "Description Text...": "Beschreibungstext...",
 "Fix current issues": "Aktuelle Probleme beheben",
 "Fix issues with sandboxing": "Sandboxprobleme beheben",
@@ -10,8 +10,8 @@
 "Yes": "Ja",
 "No": "Nein",
 
-"App compatybility checker": "App-Kompatibilitätsprüfer",
-"This script check which app compatybility templates needs to be enabled": "Dieses Skript überprüft, welche App-Kompatibilitätsvorlagen aktiviert werden müssen",
+"App compatibility checker": "App-Kompatibilitätsprüfer",
+"This script check which app compatibility templates needs to be enabled": "Dieses Skript überprüft, welche App-Kompatibilitätsvorlagen aktiviert werden müssen",
 "Loaded %1 templates": "%1 Vorlagen geladen",
 
 "Browser shortcut is missing from the desktop": "Browser-Verknüpfung fehlt auf dem Desktop",
@@ -43,5 +43,38 @@
 "To enable webcam support on Windows 11, the isolation level must be reduced. \nIf you want to proceed, please press NEXT and select a sandbox to modify. \n": "Um die Webcam-Unterstützung unter Windows 11 zu aktivieren, muss das Isolationsniveau reduziert werden. \nWenn Sie fortfahren möchten, drücken Sie bitte auf WEITER und wählen eine Sandbox zur Modifikation aus. \n",
 "\nPlease note that this required preset works only with a valid supporter certificate!": "\nBitte beachten Sie, dass diese erforderliche Voreinstellung nur mit einem gültigen Unterstützerzertifikat funktioniert!",
 "Select which box to turn into a reduced isolation app compartment box.": "Wählen Sie, welche Box in eine Applikationsunterteilungsbox mit reduzierter Isolation umgewandelt werden soll.",
-"The mitigation has been applied please try out the web cam in %1 and indicate if the issue has been resolved.": "Die Abhilfe wurde angewendet, bitte testen Sie die Webcam in %1 und geben an, ob das Problem behoben wurde."
+"The mitigation has been applied please try out the web cam in %1 and indicate if the issue has been resolved.": "Die Abhilfe wurde angewendet, bitte testen Sie die Webcam in %1 und geben an, ob das Problem behoben wurde.",
+
+"Select affected sandbox": "Select affected sandbox",
+"Enter Process Name": "Enter Process Name",
+
+"Internet Access restrictions are in effect for the sandbox in which the program is running. The program is prohibited from accessing the Internet.": "Internet Access restrictions are in effect for the sandbox in which the program is running. The program is prohibited from accessing the Internet.",
+
+"Start/Run restrictions are in effect for the sandbox in which the program is running. The program is prohibited from starting or running.": "Start/Run restrictions are in effect for the sandbox in which the program is running. The program is prohibited from starting or running.",
+
+"Failures to load SbieDll.dll when encountered by Chrome, or another software employing app containers, it is often caused by invalid DACL entries for the Sandboxie home directory. This mitigation measure will fix them, for this reason it will prompt for admin privileges which need to be granted for kmdutil.exe.": "Failures to load SbieDll.dll when encountered by Chrome, or another software employing app containers, it is often caused by invalid DACL entries for the Sandboxie home directory. This mitigation measure will fix them, for this reason it will prompt for admin privileges which need to be granted for kmdutil.exe.",
+"The DACLs have been adjusted, please try to run your application again and indicate if the issue has been resolved.": "The DACLs have been adjusted, please try to run your application again and indicate if the issue has been resolved.",
+"DACLs fix did not resolve the issue": "DACLs fix did not resolve the issue",
+
+"The message indicates that Sandboxie was unable to start one of the helper programs SandboxieRpcSs or SandboxieDcomLaunch. The name noted in the message can be rpcss or dcomlaunch.\n\nYou can submit an issue report on the next page to help us to analyze the issue.": "The message indicates that Sandboxie was unable to start one of the helper programs SandboxieRpcSs or SandboxieDcomLaunch. The name noted in the message can be rpcss or dcomlaunch.\n\nYou can submit an issue report on the next page to help us to analyze the issue.",
+
+"Sandboxie was not able to execute one of its own programs. Check access permissions to the Sandboxie installation folder and/or reinstall Sandboxie.\n\nPossible Causes:\n1. Sandboxie was configured to block access to the folder containing its program files.\n2. A third-party (HIPS) security software was configured to block the execution of the program mentioned in the message.\n\nYou can submit an issue report on the next page to help us to analyze the issue.": "Sandboxie was not able to execute one of its own programs. Check access permissions to the Sandboxie installation folder and/or reinstall Sandboxie.\n\nPossible Causes:\n1. Sandboxie was configured to block access to the folder containing its program files.\n2. A third-party (HIPS) security software was configured to block the execution of the program mentioned in the message.\n\nYou can submit an issue report on the next page to help us to analyze the issue.",
+
+"Do you want to open the box option dialog to change this preset?": "Do you want to open the box option dialog to change this preset?",
+"No, it is fine as it is": "No, it is fine as it is",
+"No, but I want to report a bug": "No, but I want to report a bug",
+
+"The message %1 is caused by the file migration limit being reached.": "The message %1 is caused by the file migration limit being reached.",
+
+"It seems you are using a non-administrative user account on a system with enabled parental controls, this is known to be incompatible with Sandboxie.\nYou have the following options to resolve the issue.": "It seems you are using a non-administrative user account on a system with enabled parental controls, this is known to be incompatible with Sandboxie.\nYou have the following options to resolve the issue.",
+
+"Sbie Message Code": "Sbie Message Code",
+"Name affected process": "Name affected process",
+"Please enter the SBIEMSG ID you have encountered.": "Please enter the SBIEMSG ID you have encountered.",
+"There is no automated troubleshooting available for SBIE%1 yet.<br />": "There is no automated troubleshooting available for SBIE%1 yet.<br />",
+"The full message text is: %1<br />": "The full message text is: %1<br />",
+"Visit out <a href=\"%1\">online-documentation</a> to learn more about this, and other sbie messages.": "Visit out <a href=\"%1\">online-documentation</a> to learn more about this, and other sbie messages.",
+"Would you like to collect some logs to help us resolve the issue.": "Would you like to collect some logs to help us resolve the issue.",
+"Now please run your application again to trigger the Sbie message.<br /><br />": "Now please run your application again to trigger the Sbie message.<br /><br />",
+"Press NEXT when you are done collecting logs.": "Press NEXT when you are done collecting logs."
 }
