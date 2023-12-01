@@ -197,6 +197,8 @@ private slots:
 	void OnDelProcess();
 	void OnShowHiddenProcTmpl()		{ ShowHiddenProcTmpl(true); }
 
+	void OnConfidentialChanged();
+	void OnLessConfidentialChanged();
 	void OnHostProcessAllow();
 	void OnHostProcessDeny();
 	void OnDelHostProcess();
@@ -353,7 +355,7 @@ protected:
 	void CloseCopyEdit(bool bSave = true);
 	void CloseCopyEdit(QTreeWidgetItem* pItem, bool bSave = true);
 
-	void SetProgramItem(QString Program, QTreeWidgetItem* pItem, int Column, const QString& Sufix = QString(), bool bList = true);
+	void SetProgramItem(QString Program, QTreeWidgetItem* pItem, int Column, const QString& Suffix = QString(), bool bList = true);
 
 	QString SelectProgram(bool bOrGroup = true);
 	void AddProgramToGroup(const QString& Program, const QString& Group);

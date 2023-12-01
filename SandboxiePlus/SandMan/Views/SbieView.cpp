@@ -16,6 +16,7 @@
 #include "../Windows/BoxImageWindow.h"
 #include "../MiscHelpers/Archive/Archive.h"
 #include "../Windows/SettingsWindow.h"
+#include "../Windows/CompressDialog.h"
 
 #include "qt_windows.h"
 #include "qwindowdefs_win.h"
@@ -1384,19 +1385,25 @@ void CSbieView::OnSandBoxAction(QAction* Action, const QList<CSandBoxPtr>& SandB
 		CSandBoxPtr pBox = SandBoxes.first();
 		auto pBoxEx = pBox.objectCast<CSandBoxPlus>();
 
+		CCompressDialog optWnd(this);
+		if (pBoxEx->UseImageFile())
+			optWnd.SetMustEncrypt();
+		if (!theGUI->SafeExec(&optWnd) == 1)
+			return;
+
+		QString Password;
+		if (optWnd.UseEncryption()) {
+			CBoxImageWindow pwWnd(CBoxImageWindow::eExport, this);
+			if (!theGUI->SafeExec(&pwWnd) == 1)
+				return;
+			Password = pwWnd.GetPassword();
+		}
+
 		QString Path = QFileDialog::getSaveFileName(this, tr("Select file name"), SandBoxes.first()->GetName() + ".7z", tr("7-zip Archive (*.7z)"));	
 		if (Path.isEmpty())
 			return;
 
-		QString Password;
-		if (pBoxEx->UseImageFile()) {
-			CBoxImageWindow window(CBoxImageWindow::eExport, this);
-			if (!theGUI->SafeExec(&window) == 1)
-				return;
-			Password = window.GetPassword();
-		}
-
-		SB_PROGRESS Status = pBoxEx->ExportBox(Path, Password);
+		SB_PROGRESS Status = pBoxEx->ExportBox(Path, Password, optWnd.GetLevel(), optWnd.MakeSolid());
 		if (Status.GetStatus() == OP_ASYNC)
 			theGUI->AddAsyncOp(Status.GetValue(), false, tr("Exporting: %1").arg(Path));
 		else
@@ -1692,9 +1699,9 @@ void CSbieView::OnProcessAction(QAction* Action, const QList<CBoxedProcessPtr>& 
 		else if (Action == m_pMenuMarkLeader)
 			pProcess.objectCast<CSbieProcess>()->SetLeaderProgram(m_pMenuMarkLeader->isChecked());
 		else if (Action == m_pMenuSuspend)
-			Results.append(pProcess->SetSuspend(true));
+			Results.append(pProcess->SetSuspended(true));
 		else if (Action == m_pMenuResume)
-			Results.append(pProcess->SetSuspend(false));
+			Results.append(pProcess->SetSuspended(false));
 	}
 
 	theGUI->CheckResults(Results, this);

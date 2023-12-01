@@ -202,6 +202,8 @@ void COptionsWindow::OnForceProg()
 	QString Value = SelectProgram();
 	if (Value.isEmpty())
 		return;
+	if (!CheckForcedItem(Value, (int)eProcess))
+		return;
 	AddForcedEntry(Value, (int)eProcess);
 	OnForcedChanged();
 }
@@ -210,8 +212,6 @@ void COptionsWindow::OnBreakoutProg()
 {
 	QString Value = SelectProgram();
 	if (Value.isEmpty())
-		return;
-	if (!CheckForcedItem(Value, (int)eProcess))
 		return;
 	AddBreakoutEntry(Value, (int)eProcess);
 	OnForcedChanged();
@@ -287,9 +287,9 @@ bool COptionsWindow::CheckForcedItem(const QString& Value, int type)
 			bDangerous = true;
 		else if (Value.compare("taskmgr.exe", Qt::CaseInsensitive) == 0 || Value.compare(winPath + "\\system32\\taskmgr.exe", Qt::CaseInsensitive) == 0)
 			bDangerous = true;
-		else if (Value.contains("sbiesvc.exe", Qt::CaseInsensitive) == 0)
+		else if (Value.contains("sbiesvc.exe", Qt::CaseInsensitive))
 			bDangerous = true;
-		else if (Value.contains("sandman.exe", Qt::CaseInsensitive) == 0)
+		else if (Value.contains("sandman.exe", Qt::CaseInsensitive))
 			bDangerous = true;
 	}
 	else
@@ -302,7 +302,7 @@ bool COptionsWindow::CheckForcedItem(const QString& Value, int type)
 			bDangerous = true; // sub path of C:\Windows
 	}
 
-	if (bDangerous && QMessageBox::warning(this, "Sandboxie-Plus", tr("Forcing the specified folder will most likely break Windows, are you sure you want to proceed?")
+	if (bDangerous && QMessageBox::warning(this, "Sandboxie-Plus", tr("Forcing the specified entry will most likely break Windows, are you sure you want to proceed?")
 		, QDialogButtonBox::Yes, QDialogButtonBox::No) != QDialogButtonBox::Yes)
 		return false;
 	return true;
