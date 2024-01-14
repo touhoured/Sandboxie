@@ -35,7 +35,7 @@ bool CSupportDialog::CheckSupport(bool bOnRun)
 {
 	bool NoGo = false;
 
-#ifdef INSIDER_BUILD
+#ifdef NO____INSIDER_BUILD_____NOSUPPORT // NOSUPPORT
 	if (g_CertInfo.active) {
 		if (!CERT_IS_INSIDER(g_CertInfo)) {
 			TArguments args = GetArguments(g_Certificate, L'\n', L':');
@@ -333,7 +333,7 @@ void CSupportDialog::OnButton()
 		CSettingsWindow* pSettingsWindow = new CSettingsWindow(this);
 		pSettingsWindow->showTab("Support", true);
 		connect(pSettingsWindow, &CSettingsWindow::Closed, [this]() {
-#ifdef INSIDER_BUILD
+#ifdef NO____INSIDER_BUILD_____NOSUPPORT // NOSUPPORT
 			if (g_CertInfo.active && !CERT_IS_INSIDER(g_CertInfo)) {
 				TArguments args = GetArguments(g_Certificate, L'\n', L':');
 				if (args.value("TYPE").contains("PATREON")) {
