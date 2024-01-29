@@ -134,11 +134,12 @@ If you find Sandboxie useful, then feel free to contribute through our [Contribu
 - bastik-1001, APMichael - German
 - timinoun - Hungarian (provided by email)
 - isaak654, DerivativeOfLog7 - Italian
+- takahiro-itou - Japanese
 - VenusGirl - Korean
 - 7zip - Polish ([provided separately](https://forum.xanasoft.com/viewtopic.php?f=12&t=4&start=20))
 - JNylson - Portuguese and Brazilian Portuguese
 - lufog - Russian
-- sebadamus - Spanish
+- LumitoLuma, sebadamus - Spanish
 - 1FF, Thatagata - Swedish (provided by email or pull request)
 - xorcan, fmbxnary, offhub - Turkish
 - SuperMaxusa, lufog - Ukrainian

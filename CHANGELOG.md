@@ -4,6 +4,41 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+## [1.12.8 / 5.67.8] - 2024-01-xx
+
+### Added
+- added Japanese language on Plus UI [#3573](https://github.com/sandboxie-plus/Sandboxie/pull/3573)
+
+### Fixed
+- fixed SBIE2321 Cannot manage device map: C0000034 / 11 [#2996](https://github.com/sandboxie-plus/Sandboxie/issues/2996)
+- fixed Cannot run explorer.exe on emulate admin sandbox [#3516](https://github.com/sandboxie-plus/Sandboxie/issues/3516)
+- fixed potential BSOD issue with WFP when trace loging is enabled [#2471](https://github.com/sandboxie-plus/Sandboxie/issues/2471)
+- fixed Run from Sandbox > Run > Program and Run from folder doesn't use the same working dir [#3555](https://github.com/sandboxie-plus/Sandboxie/issues/3555)
+- fixed UseNewSymlinkResolver causes applications to create both the link and the target folder [#3481](https://github.com/sandboxie-plus/Sandboxie/issues/3481)
+- fixed [Plus UI] Notification window is stuck when a modal dialog shows up [#3586](https://github.com/sandboxie-plus/Sandboxie/issues/3586)
+
+
+
+## [1.12.7 / 5.67.7] - 2024-01-10
+
+### Fixed
+- Make Duplicate Box Config keep the order of the original box configuration [#3523](https://github.com/sandboxie-plus/Sandboxie/issues/3523)
+- Save options as new defaults disappears from the Summary page [#3522](https://github.com/sandboxie-plus/Sandboxie/issues/3522)
+- fixed Windows Explorer has difficulty navigating when running in a sandbox with data protection enabled on Windows 11 [#3517](https://github.com/sandboxie-plus/Sandboxie/issues/3517) [#3516](https://github.com/sandboxie-plus/Sandboxie/issues/3516)
+  - the default template for privacy boxes now sets NormalFilePath=%ProgramData%\Microsoft\
+- fixed MessageBox with MB_DEFAULT_DESKTOP_ONLY or MB_SERVICE_NOTIFICATION can not display title and text correctly in security hardened box. [#3529](https://github.com/sandboxie-plus/Sandboxie/issues/3529)
+- fixed Can't run npm inside security hardened sandbox on Windows 11 [#3505](https://github.com/sandboxie-plus/Sandboxie/issues/3505)
+- fixed [1.12.6] Symlink and open path issue [#3537](https://github.com/sandboxie-plus/Sandboxie/issues/3537)
+  - when a volume without a asociated drive letter is encountered sbie uses \drive\{guid} instead of \drive\[letter]
+  - Note: when the volume later gets a drive letter the data under \drive\{guid} will be ignored!
+- fixed right click a sandbox shortcut - click run unsandboxed in order to open the file without sandbox [#3528](https://github.com/sandboxie-plus/Sandboxie/issues/3528)
+  - Note: for the fix to take full effect the shell integration need to be re applied
+- fixed Error Status: 0x0000065b (Function Failed During Execution) [#3504](https://github.com/sandboxie-plus/Sandboxie/issues/3504)
+- fixed Privacy Enhanced Sandboxes are fully out of function with SBIE2204 error code [#3542](https://github.com/sandboxie-plus/Sandboxie/issues/3542)
+- fixed OpenFilePath directories are not enumerated within their parent folders [#3519](https://github.com/sandboxie-plus/Sandboxie/issues/3519)
+
+
+
 ## [1.12.6 / 5.67.6] - 2024-01-02
 
 ### Changed
