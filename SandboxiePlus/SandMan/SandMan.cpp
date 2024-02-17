@@ -2423,6 +2423,43 @@ void CSandMan::OnStatusChanged()
 			}
 		}
 
+		int DynData = theAPI->IsDyndataActive();
+		if (DynData != 1) 
+		{
+			RTL_OSVERSIONINFOEXW versionInfo;
+			memset(&versionInfo, 0, sizeof(RTL_OSVERSIONINFOEXW));
+			versionInfo.dwOSVersionInfoSize = sizeof(RTL_OSVERSIONINFOEXW);
+			NTSTATUS(WINAPI *RtlGetVersion)(PRTL_OSVERSIONINFOEXW);
+			*(void**)&RtlGetVersion = GetProcAddress(GetModuleHandleA("ntdll.dll"), "RtlGetVersion");
+			if (RtlGetVersion != NULL) 
+				RtlGetVersion(&versionInfo);
+			else
+				GetVersionExW((LPOSVERSIONINFOW)&versionInfo); // since windows 10 this one is lying
+			RtlGetVersion(&versionInfo);
+
+			if (DynData == 0) 
+			{
+				QString Message = tr("Your Windows build %1 exceeds the current support capabilities of your Sandboxie version, "
+					"resulting in the disabling of token-based security isolation. Consequently, all applications will operate in application compartment mode without secure isolation.\r\n"
+					"Please check if there is an update for sandboxie.").arg(versionInfo.dwBuildNumber);
+				OnLogMessage(Message, true);
+
+				int IgnoreUnkBuild = theConf->GetInt("Options/IgnoreUnkBuild", 0);
+				if (IgnoreUnkBuild != versionInfo.dwBuildNumber)
+				{
+					bool Ignore = false;
+					CCheckableMessageBox::question(this, "Sandboxie-Plus", Message, tr("Don't show this message again for the current build."), &Ignore, QDialogButtonBox::Ok, QDialogButtonBox::Ok, QMessageBox::Critical);
+					if (Ignore)
+						theConf->SetValue("Options/IgnoreUnkBuild", (int)versionInfo.dwBuildNumber);
+				}
+			}
+			else if (DynData == -1)
+			{
+				OnLogMessage(tr("Your Windows build %1 exceeds the current known support capabilities of your Sandboxie version, "
+					"Sandboxie will attempt to use the last-known offsets which may cause system instability.").arg(versionInfo.dwBuildNumber), true);
+			}
+		}
+
 		if (isVisible())
 			CheckSupport();
 
@@ -3553,6 +3590,8 @@ void CSandMan::OnResetMsgs()
 		theConf->DelValue("Options/WarnOpenCOM");
 
 		theConf->DelValue("Options/WarnWizardOnClose");
+
+		theConf->DelValue("Options/IgnoreUnkBuild");
 	}
 
 	theAPI->GetUserSettings()->UpdateTextList("SbieCtrl_HideMessage", QStringList(), true);
@@ -4170,7 +4209,7 @@ void CSandMan::OnAbout()
 		QString AboutCaption = tr(
 			"<h3>About Sandboxie-Plus</h3>"
 			"<p>Version %1</p>"
-			"<p>Copyright (c) 2020-2023 by DavidXanatos</p>"
+			"<p>Copyright (c) 2020-2024 by DavidXanatos</p>"
 		).arg(theGUI->GetVersion());
 
 		QString CertInfo;
