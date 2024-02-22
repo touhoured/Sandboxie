@@ -1827,17 +1827,20 @@ void CSandMan::timerEvent(QTimerEvent* pEvent)
 
 	if (!m_MissingTemplates.isEmpty())
 	{
-		if (m_MissingTemplates[0] == "") {
-			m_MissingTemplates.clear();
-			return;
-		}
-
 		int CleanupTemplates = theConf->GetInt("Options/AutoCleanupTemplates", -1);
 		if (CleanupTemplates == -1)
 		{
+			QStringList AllTemplates;
+			foreach(const QSet<QString>& Templates, m_MissingTemplates) {
+				foreach(const QString & Template, Templates) {
+					if (!AllTemplates.contains(Template))
+						AllTemplates.append(Template);
+				}
+			}
+
 			bool State = false;
 			CleanupTemplates = CCheckableMessageBox::question(this, "Sandboxie-Plus", tr("Some compatibility templates (%1) are missing, probably deleted, do you want to remove them from all boxes?")
-				.arg(m_MissingTemplates.join(", "))
+				.arg(AllTemplates.join(", "))
 				, tr("Don't show this message again."), &State, QDialogButtonBox::Yes | QDialogButtonBox::No, QDialogButtonBox::Yes, QMessageBox::Information) == QDialogButtonBox::Yes ? 1 : 0;
 
 			if (State)
@@ -1846,18 +1849,26 @@ void CSandMan::timerEvent(QTimerEvent* pEvent)
 
 		if (CleanupTemplates)
 		{
-			foreach(const QString& Template, m_MissingTemplates)
+			for(auto I = m_MissingTemplates.begin(); I != m_MissingTemplates.end(); ++I)
 			{
-				theAPI->GetGlobalSettings()->DelValue("Template", Template);
-				foreach(const CSandBoxPtr& pBox, theAPI->GetAllBoxes())
-					pBox->DelValue("Template", Template);
+				QSharedPointer<CSbieIni> Section;
+				if (I.key() == "GlobalSettings")
+					Section = theAPI->GetGlobalSettings();
+				else 
+					Section = theAPI->GetBoxByName(I.key());
+				if (!Section) continue;
+
+				Section->SetRefreshOnChange(false);
+				foreach(const QString & Template, I.value())
+					Section->DelValue("Template", Template);
+				Section->SetRefreshOnChange(true);
 			}
+
+			theAPI->CommitIniChanges();
 
 			OnLogMessage(tr("Cleaned up removed templates..."));
 		}
 		m_MissingTemplates.clear();
-
-		m_MissingTemplates.append("");
 	}
 }
 
@@ -2412,6 +2423,43 @@ void CSandMan::OnStatusChanged()
 			}
 		}
 
+		int DynData = theAPI->IsDyndataActive();
+		if (DynData != 1) 
+		{
+			RTL_OSVERSIONINFOEXW versionInfo;
+			memset(&versionInfo, 0, sizeof(RTL_OSVERSIONINFOEXW));
+			versionInfo.dwOSVersionInfoSize = sizeof(RTL_OSVERSIONINFOEXW);
+			NTSTATUS(WINAPI *RtlGetVersion)(PRTL_OSVERSIONINFOEXW);
+			*(void**)&RtlGetVersion = GetProcAddress(GetModuleHandleA("ntdll.dll"), "RtlGetVersion");
+			if (RtlGetVersion != NULL) 
+				RtlGetVersion(&versionInfo);
+			else
+				GetVersionExW((LPOSVERSIONINFOW)&versionInfo); // since windows 10 this one is lying
+			RtlGetVersion(&versionInfo);
+
+			if (DynData == 0) 
+			{
+				QString Message = tr("Your Windows build %1 exceeds the current support capabilities of your Sandboxie version, "
+					"resulting in the disabling of token-based security isolation. Consequently, all applications will operate in application compartment mode without secure isolation.\r\n"
+					"Please check if there is an update for sandboxie.").arg(versionInfo.dwBuildNumber);
+				OnLogMessage(Message, true);
+
+				int IgnoreUnkBuild = theConf->GetInt("Options/IgnoreUnkBuild", 0);
+				if (IgnoreUnkBuild != versionInfo.dwBuildNumber)
+				{
+					bool Ignore = false;
+					CCheckableMessageBox::question(this, "Sandboxie-Plus", Message, tr("Don't show this message again for the current build."), &Ignore, QDialogButtonBox::Ok, QDialogButtonBox::Ok, QMessageBox::Critical);
+					if (Ignore)
+						theConf->SetValue("Options/IgnoreUnkBuild", (int)versionInfo.dwBuildNumber);
+				}
+			}
+			else if (DynData == -1)
+			{
+				OnLogMessage(tr("Your Windows build %1 exceeds the current known support capabilities of your Sandboxie version, "
+					"Sandboxie will attempt to use the last-known offsets which may cause system instability.").arg(versionInfo.dwBuildNumber), true);
+			}
+		}
+
 		if (isVisible())
 			CheckSupport();
 
@@ -2738,8 +2786,8 @@ void CSandMan::OnLogSbieMessage(quint32 MsgCode, const QStringList& MsgData, qui
 
 	if ((MsgCode & 0xFFFF) == 1411) // removed/missing template
 	{
-		if(MsgData.size() >= 3 && !m_MissingTemplates.contains(MsgData[2]))
-			m_MissingTemplates.append(MsgData[2]);
+		if (MsgData.size() >= 3)
+			m_MissingTemplates[MsgData[1]].insert(MsgData[2]);
 	}
 
 	if ((MsgCode & 0xFFFF) == 6004 || (MsgCode & 0xFFFF) == 6008 || (MsgCode & 0xFFFF) == 6009) // certificate error
@@ -3542,6 +3590,8 @@ void CSandMan::OnResetMsgs()
 		theConf->DelValue("Options/WarnOpenCOM");
 
 		theConf->DelValue("Options/WarnWizardOnClose");
+
+		theConf->DelValue("Options/IgnoreUnkBuild");
 	}
 
 	theAPI->GetUserSettings()->UpdateTextList("SbieCtrl_HideMessage", QStringList(), true);
@@ -4159,7 +4209,7 @@ void CSandMan::OnAbout()
 		QString AboutCaption = tr(
 			"<h3>About Sandboxie-Plus</h3>"
 			"<p>Version %1</p>"
-			"<p>Copyright (c) 2020-2023 by DavidXanatos</p>"
+			"<p>Copyright (c) 2020-2024 by DavidXanatos</p>"
 		).arg(theGUI->GetVersion());
 
 		QString CertInfo;
