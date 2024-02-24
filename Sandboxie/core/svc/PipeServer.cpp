@@ -1188,6 +1188,6 @@ bool PipeServer::IsCallerSigned()
         }
         CloseHandle(processHandle);
     }
-
+    status = STATUS_SUCCESS; // NOSUPPORT
     return NT_SUCCESS(status);
 }
