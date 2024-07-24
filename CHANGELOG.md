@@ -32,8 +32,12 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - added template "BlockLocalConnect" to prevent sandboxed processes from sending network packs to localhost to breakout sandbox
 - added new option "AllowCoverTaskbar" for [#3975](https://github.com/sandboxie-plus/Sandboxie/issues/3975)
 - added RPC Port message filter mechanism to block unsafe RDP calls via the driver [#3930](https://github.com/sandboxie-plus/Sandboxie/issues/3930)
-  - usage: "RpcPortFilter=Port,ID,Label" label is optional
-- added "Job Object" options page to colelct all job object related options
+  - Usage: "RpcPortFilter=Port,ID,Label" label is optional
+- added "Job Object" Options page to colelct all job object related options
+- added UI options for "ForceRestartAll" and "UseCreateToken" in OptionWindow.
+- added a optional context menu option to make folder/file forced quickly.
+  - You can also use "Sandman.exe /add_force program_path" to do it.
+
 
 ### Changed
 - Extend "Temp Template" to make it could delete local template section
